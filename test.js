@@ -1,26 +1,17 @@
 (function () {
-    console.log('[Lampa] Plugin loaded');
+    console.log('[Lampa] Ads block lite');
 
-    function waitLampa(cb) {
-        if (window.Lampa && Lampa.Account && Lampa.Ads) {
-            cb();
-        } else {
-            setTimeout(() => waitLampa(cb), 300);
+    // Глушим только video-рекламу
+    const origCreate = document.createElement;
+    document.createElement = function (tag) {
+        const el = origCreate.call(this, tag);
+
+        if (tag === 'video') {
+            el.play = function () {
+                el.dispatchEvent(new Event('ended'));
+                return Promise.resolve();
+            };
         }
-    }
-
-    waitLampa(() => {
-        // Премиум
-        const origPremium = Lampa.Account.hasPremium;
-        Lampa.Account.hasPremium = function () {
-            return true;
-        };
-        console.log('[Lampa] Premium forced');
-
-        // Реклама
-        Lampa.Ads.show = function () {
-            console.log('[Lampa] Ads blocked');
-        };
-        Lampa.Ads.init = function () {};
-    });
+        return el;
+    };
 })();
